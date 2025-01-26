@@ -201,7 +201,6 @@ fun getApplicationSignature(context: Context, packageName: String): List<String>
                 emptyList()
             }
         }
-
         return signatureList
     } catch (e: Exception) {
         // Handle error

@@ -36,6 +36,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget _buildFromIntent(String label, Intent? intent) {
+    final data = intent?.data;
     return Center(
       child: Column(
         children: [
@@ -43,7 +44,7 @@ class _MyAppState extends State<MyApp> {
           Text(
               "fromPackage: ${intent?.fromPackageName}\nfromSignatures: ${intent?.fromSignatures}"),
           Text(
-              'action: ${intent?.action}\ndata: ${intent?.data}\ncategories: ${intent?.categories}'),
+              'action: ${intent?.action}\ndata: ${data?.substring(data.lastIndexOf("/"))} \ncategories: ${intent?.categories}'),
           Text("extras: ${intent?.extra}")
         ],
       ),
