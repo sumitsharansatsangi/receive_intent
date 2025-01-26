@@ -3,7 +3,6 @@ package com.bhikadia.receive_intent
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import androidx.annotation.NonNull
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -28,7 +27,7 @@ class ReceiveIntentPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Strea
     private var eventSink: EventSink? = null
 
     private lateinit var context: Context
-    private var activity: Activity? = null;
+    private var activity: Activity? = null
 
 
     private var initialIntentMap: Map<String, Any?>? = null
@@ -65,7 +64,7 @@ class ReceiveIntentPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Strea
                 val json = JSONObject(data)
                 activity?.setResult(resultCode, jsonToIntent(json))
             }
-            if (shouldFinish ?: false) {
+            if (shouldFinish == true) {
                 activity?.finish()
             }
             return result.success(null)
@@ -74,7 +73,7 @@ class ReceiveIntentPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Strea
     }
 
 
-    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
 
         methodChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "receive_intent")
@@ -84,7 +83,7 @@ class ReceiveIntentPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Strea
         eventChannel.setStreamHandler(this)
     }
 
-    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+    override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             "getInitialIntent" -> {
                 result.success(initialIntentMap)
@@ -106,7 +105,7 @@ class ReceiveIntentPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Strea
         eventSink = null
     }
 
-    override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
     }
@@ -116,25 +115,25 @@ class ReceiveIntentPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Strea
         binding.addOnNewIntentListener(fun(intent: Intent?): Boolean {
             // Log.e("addOnNewIntentListener", "intent: $intent")
             intent?.let { handleIntent(it, binding.activity.callingActivity?.packageName) }
-            return false;
+            return false
         })
         handleIntent(binding.activity.intent, binding.activity.callingActivity?.packageName)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        activity = null;
+        activity = null
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         activity = binding.activity
         binding.addOnNewIntentListener(fun(intent: Intent?): Boolean {
             intent?.let { handleIntent(it, binding.activity.callingActivity?.packageName) }
-            return false;
+            return false
         })
         handleIntent(binding.activity.intent, binding.activity.callingActivity?.packageName)
     }
 
     override fun onDetachedFromActivity() {
-        activity = null;
+        activity = null
     }
 }

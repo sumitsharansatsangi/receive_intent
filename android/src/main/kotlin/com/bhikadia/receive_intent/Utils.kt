@@ -1,13 +1,12 @@
 package com.bhikadia.receive_intent
 
+// import android.util.Log
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Parcelable
-// import android.util.Log
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -88,21 +87,24 @@ fun wrap(o: Any?): Any? {
         }
         if (o is Map<*, *>) {
             // Log.e("ReceiveIntentPlugin", "$o is Map<*, *>")
-            return JSONObject(o as Map<*, *>?)
+            return JSONObject(o)
         }
         if (o is Boolean ||
-                o is Byte ||
-                o is Char ||
-                o is Double ||
-                o is Float ||
-                o is Int ||
-                o is Long ||
-                o is Short ||
-                o is String) {
+            o is Byte ||
+            o is Char ||
+            o is Double ||
+            o is Float ||
+            o is Int ||
+            o is Long ||
+            o is Short ||
+            o is String
+        ) {
             return o
         }
-        if (o is Uri || o.javaClass.getPackage().name.startsWith("java.")) {
-            return o.toString()
+        if (o.javaClass.getPackage() != null) {
+            if (o is Uri || o.javaClass.getPackage()!!.name.startsWith("java.")) {
+                return o.toString()
+            }
         }
     } catch (e: Exception) {
         // Log.e("ReceiveIntentPlugin", e.message, e)
@@ -124,19 +126,23 @@ fun toJSONArray(array: Any): JSONArray? {
             // Log.e("ReceiveIntentPlugin toJSONArray List size", "${array.size}")
             array.forEach { result.put(wrap(it)) }
         }
+
         is Array<*> -> {
             // Log.e("ReceiveIntentPlugin toJSONArray Array", "")
             // Log.e("ReceiveIntentPlugin toJSONArray Array size", "${array.size}")
             array.forEach { result.put(wrap(it)) }
         }
+
         is ArrayList<*> -> {
             // Log.e("ReceiveIntentPlugin toJSONArray ArrayList", "")
             array.forEach { result.put(wrap(it)) }
         }
+
         is ByteArray -> {
             // Log.e("ReceiveIntentPlugin toJSONArray ByteArray", "")
             array.forEach { result.put(wrap(it)) }
         }
+
         else -> {
             // val typename = array.javaClass.kotlin.simpleName
             // Log.e("ReceiveIntentPlugin toJSONArray else", "$typename")
@@ -157,7 +163,11 @@ fun getApplicationSignature(context: Context, packageName: String): List<String>
     try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // New signature
-            val sig = context.packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES).signingInfo
+            val sig = context.packageManager.getPackageInfo(
+                packageName,
+                PackageManager.GET_SIGNING_CERTIFICATES
+            ).signingInfo
+            if(sig !=null){
             signatureList = if (sig.hasMultipleSigners()) {
                 // Send all with apkContentsSigners
                 sig.apkContentsSigners.map {
@@ -173,12 +183,22 @@ fun getApplicationSignature(context: Context, packageName: String): List<String>
                     bytesToHex(digest.digest())
                 }
             }
+            }else{
+                signatureList = emptyList()
+            }
         } else {
-            val sig = context.packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES).signatures
-            signatureList = sig.map {
-                val digest = MessageDigest.getInstance("SHA-256")
-                digest.update(it.toByteArray())
-                bytesToHex(digest.digest())
+            val sig = context.packageManager.getPackageInfo(
+                packageName,
+                PackageManager.GET_SIGNATURES
+            ).signatures
+            signatureList = if (sig != null) {
+                sig.map {
+                    val digest = MessageDigest.getInstance("SHA-256")
+                    digest.update(it.toByteArray())
+                    bytesToHex(digest.digest())
+                }
+            } else{
+                emptyList()
             }
         }
 
@@ -190,7 +210,8 @@ fun getApplicationSignature(context: Context, packageName: String): List<String>
 }
 
 fun bytesToHex(bytes: ByteArray): String {
-    val hexArray = charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
+    val hexArray =
+        charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
     val hexChars = CharArray(bytes.size * 2)
     var v: Int
     for (j in bytes.indices) {
