@@ -21,7 +21,7 @@ class Intent {
   final List<String>? fromSignatures;
   final String? action;
   final String? dataString;
-  final Uri? data;
+  // final Uri? data;
   final String? fileName;
   final String? type;
   final List<String>? categories;
@@ -35,7 +35,7 @@ class Intent {
     this.fromSignatures,
     this.action,
     this.dataString,
-    this.data,
+    // this.data,
     this.fileName,
     this.type,
     this.categories,
@@ -51,7 +51,7 @@ class Intent {
             : null,
         action: map?["action"],
         dataString: map?["dataString"],
-        data: map?["data"],
+        // data: map?["data"],
         fileName: map?["fileName"],
         type: map?["type"],
         categories: map?["categories"] != null
@@ -69,7 +69,7 @@ class Intent {
         "fromSignatures": fromSignatures,
         "action": action,
         "dataString": dataString,
-        "data": data,
+        // "data": data,
         "fileName": fileName,
         "type": type,
         "categories": categories,
