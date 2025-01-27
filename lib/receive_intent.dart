@@ -52,7 +52,7 @@ class Intent {
         action: map?["action"],
         dataString: map?["dataString"],
         // data: map?["data"],
-        fileName: map?["fileName"],
+        fileName: map?["filename"],
         type: map?["type"],
         categories: map?["categories"] != null
             ? List.unmodifiable(
@@ -70,7 +70,7 @@ class Intent {
         "action": action,
         "dataString": dataString,
         // "data": data,
-        "fileName": fileName,
+        "filename": fileName,
         "type": type,
         "categories": categories,
         "extra": extra,

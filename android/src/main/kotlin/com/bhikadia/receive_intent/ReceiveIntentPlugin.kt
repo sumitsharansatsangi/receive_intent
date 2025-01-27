@@ -47,7 +47,6 @@ class ReceiveIntentPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Strea
                 "fromSignatures" to fromPackageName?.let { getApplicationSignature(context, it) },
                 "action" to intent.action,
                 "dataString" to intent.dataString,
-                "data" to intent.data,
                 "filename" to getFileName(intent.data!!, context),
                 "categories" to intent.categories?.toList(),
                 "type" to intent.type,

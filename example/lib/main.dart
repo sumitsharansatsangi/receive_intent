@@ -44,7 +44,7 @@ class _MyAppState extends State<MyApp> {
           Text(
               "fromPackage: ${intent?.fromPackageName}\nfromSignatures: ${intent?.fromSignatures}"),
           Text(
-              'action: ${intent?.action}\ndata: ${dataString?.substring(dataString.lastIndexOf("/") + 1)} \ntype: ${intent?.type}  \ncategories: ${intent?.categories}'),
+              'action: ${intent?.action}\ndata: ${dataString?.substring(dataString.lastIndexOf("/") + 1)} \ntype: ${intent?.type} \nFileName: ${intent?.fileName} \ncategories: ${intent?.categories}'),
           Text("extras: ${intent?.extra}")
         ],
       ),
