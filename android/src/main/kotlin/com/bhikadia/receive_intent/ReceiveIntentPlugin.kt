@@ -44,10 +44,10 @@ class ReceiveIntentPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Strea
         // Log.e("ReceiveIntentPlugin", "fromPackageName: $fromPackageName")
         val intentMap = mapOf<String, Any?>(
                 "fromPackageName" to fromPackageName,
-                "fromSignatures" to fromPackageName?.let { getApplicationSignature(context, it) },
+                "fromSignatures" to fromPackageName?.let { getApplicationSignature(context, it).toList() },
                 "action" to intent.action,
-                "dataString" to intent.dataString,
-                "filename" to getFileName(intent.data!!, context),
+                "data" to intent.dataString,
+                "filename" to getFileName(intent.data, context),
                 "categories" to intent.categories?.toList(),
                 "type" to intent.type,
                 "extra" to intent.extras?.let { bundleToJSON(it).toString() }

@@ -14,7 +14,6 @@ import org.json.JSONObject
 import java.security.MessageDigest
 import java.util.ArrayList
 
-
 fun jsonToBundle(json: JSONObject): Bundle {
     val bundle = Bundle()
     try {
@@ -223,8 +222,11 @@ fun bytesToHex(bytes: ByteArray): String {
 }
 
 
-fun getFileName(uri: Uri, context: Context): String? {
+fun getFileName(uri: Uri?, context: Context): String? {
     var result: String? = null
+    if (uri == null) {
+        return null
+    }
     if (uri.scheme.equals("content")) {
         val cursor = context.contentResolver.query(uri, null, null, null, null)
         try {
