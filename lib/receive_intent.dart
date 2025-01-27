@@ -20,7 +20,9 @@ class Intent {
   final String? fromPackageName;
   final List<String>? fromSignatures;
   final String? action;
-  final String? data;
+  final String? dataString;
+  final Uri? data;
+  final String? fileName;
   final String? type;
   final List<String>? categories;
   final Map<String, dynamic>? extra;
@@ -32,7 +34,9 @@ class Intent {
     this.fromPackageName,
     this.fromSignatures,
     this.action,
+    this.dataString,
     this.data,
+    this.fileName,
     this.type,
     this.categories,
     this.extra,
@@ -46,7 +50,9 @@ class Intent {
                 (map!["fromSignatures"] as List).map((e) => e.toString()))
             : null,
         action: map?["action"],
+        dataString: map?["dataString"],
         data: map?["data"],
+        fileName: map?["fileName"],
         type: map?["type"],
         categories: map?["categories"] != null
             ? List.unmodifiable(
@@ -62,7 +68,9 @@ class Intent {
         "fromPackageName": fromPackageName,
         "fromSignatures": fromSignatures,
         "action": action,
+        "dataString": dataString,
         "data": data,
+        "fileName": fileName,
         "type": type,
         "categories": categories,
         "extra": extra,

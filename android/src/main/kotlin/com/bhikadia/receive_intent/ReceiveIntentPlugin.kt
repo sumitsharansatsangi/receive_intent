@@ -13,6 +13,9 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import org.json.JSONObject
+//import android.net.Uri
+//import android.os.Bundle
+//import android.provider.OpenableColumns
 // import android.util.Log
 
 
@@ -43,11 +46,24 @@ class ReceiveIntentPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Strea
                 "fromPackageName" to fromPackageName,
                 "fromSignatures" to fromPackageName?.let { getApplicationSignature(context, it) },
                 "action" to intent.action,
-                "data" to intent.dataString,
+                "dataString" to intent.dataString,
+                "data" to intent.data,
+                "filename" to getFileName(intent.data!!, context),
                 "categories" to intent.categories?.toList(),
                 "type" to intent.type,
                 "extra" to intent.extras?.let { bundleToJSON(it).toString() }
         )
+//        if (intent.data != null && intent.data!!.scheme.equals("content")) {
+//            val cursor =context.contentResolver.query(intent.data!!, null, null, null, null)
+//            try {
+//                if (cursor != null && cursor.moveToFirst()) {
+//                    intentMap["filePath"] = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+//                }
+//            } finally {
+//                cursor?.close()
+//            }
+//        }
+
         // Log.e("ReceiveIntentPlugin", "intentMap: $intentMap")
         if (initialIntent) {
             initialIntentMap = intentMap
