@@ -21,6 +21,7 @@ class Intent {
   final List<String>? fromSignatures;
   final String? action;
   final String? data;
+  final String? type;
   final List<String>? categories;
   final Map<String, dynamic>? extra;
 
@@ -32,6 +33,7 @@ class Intent {
     this.fromSignatures,
     this.action,
     this.data,
+    this.type,
     this.categories,
     this.extra,
   });
@@ -45,6 +47,7 @@ class Intent {
             : null,
         action: map?["action"],
         data: map?["data"],
+        type: map?["type"],
         categories: map?["categories"] != null
             ? List.unmodifiable(
                 (map!["categories"] as List).map((e) => e.toString()))
@@ -60,6 +63,7 @@ class Intent {
         "fromSignatures": fromSignatures,
         "action": action,
         "data": data,
+        "type": type,
         "categories": categories,
         "extra": extra,
       };
