@@ -4,19 +4,24 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const MethodChannel channel = MethodChannel('receive_intent');
 
+  // Just initialize — no variable needed
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
   setUp(() {
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    messenger.setMockMethodCallHandler(channel, (MethodCall methodCall) async {
       return '42';
     });
   });
 
   tearDown(() {
-    channel.setMockMethodCallHandler(null);
+    messenger.setMockMethodCallHandler(channel, null);
   });
 
-  // test('getPlatformVersion', () async {
-  //   expect(await ReceiveIntent.platformVersion, '42');
-  // });
+  test('mock method channel call', () async {
+    final result = await channel.invokeMethod<String>('anyMethod');
+    expect(result, '42');
+  });
 }

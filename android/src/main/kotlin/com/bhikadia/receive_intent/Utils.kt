@@ -1,6 +1,5 @@
 package com.bhikadia.receive_intent
 
-// import android.util.Log
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,240 +8,164 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 import java.security.MessageDigest
-import java.util.ArrayList
+
+/* ------------------------------------------------------------
+ * JSON → Bundle
+ * ------------------------------------------------------------ */
 
 fun jsonToBundle(json: JSONObject): Bundle {
     val bundle = Bundle()
-    try {
-        val iterator: Iterator<String> = json.keys()
-        while (iterator.hasNext()) {
-            val key = iterator.next()
-            val value: Any = json.get(key)
-            when (value.javaClass.getSimpleName()) {
-                "String" -> bundle.putString(key, value as String)
-                "Integer" -> bundle.putInt(key, value as Int)
-                "Long" -> bundle.putLong(key, value as Long)
-                "Boolean" -> bundle.putBoolean(key, value as Boolean)
-                "JSONObject" -> bundle.putBundle(key, jsonToBundle(value as JSONObject))
-                "Float" -> bundle.putFloat(key, value as Float)
-                "Double" -> bundle.putDouble(key, value as Double)
-                else -> bundle.putString(key, value.toString())
-            }
+
+    json.keys().forEach { key ->
+        when (val value = json.opt(key)) {
+            is String -> bundle.putString(key, value)
+            is Int -> bundle.putInt(key, value)
+            is Long -> bundle.putLong(key, value)
+            is Boolean -> bundle.putBoolean(key, value)
+            is Float -> bundle.putFloat(key, value)
+            is Double -> bundle.putDouble(key, value)
+            is JSONObject -> bundle.putBundle(key, jsonToBundle(value))
+            null, JSONObject.NULL -> Unit
+            else -> bundle.putString(key, value.toString())
         }
-    } catch (e: JSONException) {
-        e.printStackTrace()
     }
+
     return bundle
-
 }
 
-fun jsonToIntent(json: JSONObject): Intent = Intent().apply {
-    putExtras(jsonToBundle(json))
-}
+fun jsonToIntent(json: JSONObject): Intent =
+    Intent().apply { putExtras(jsonToBundle(json)) }
 
+/* ------------------------------------------------------------
+ * Bundle → JSON
+ * ------------------------------------------------------------ */
 
-fun bundleToJSON(bundle: Bundle): JSONObject {
-    val json = JSONObject()
-    val ks = bundle.keySet()
-    val iterator: Iterator<String> = ks.iterator()
-    while (iterator.hasNext()) {
-        val key = iterator.next()
-        try {
-            // Log.e("ReceiveIntentPlugin wrapping key", "$key")
-            json.put(key, wrap(bundle.get(key)))
-        } catch (e: JSONException) {
-            e.printStackTrace()
+fun bundleToJSON(bundle: Bundle): JSONObject =
+    JSONObject().apply {
+        bundle.keySet().forEach { key ->
+            put(key, wrap(bundle.get(key)))
         }
     }
-    return json
+
+/* ------------------------------------------------------------
+ * Wrap helper (clean + safe)
+ * ------------------------------------------------------------ */
+
+fun wrap(value: Any?): Any? = when (value) {
+    null -> JSONObject.NULL
+    is JSONObject, is JSONArray -> value
+    is Map<*, *> -> JSONObject(value)
+    is Collection<*> -> JSONArray(value.map { wrap(it) })
+    is Array<*> -> JSONArray(value.map { wrap(it) })
+    is ByteArray -> JSONArray(value.map { it.toInt() })
+    is Boolean,
+    is Byte,
+    is Char,
+    is Double,
+    is Float,
+    is Int,
+    is Long,
+    is Short,
+    is String -> value
+    is Uri -> value.toString()
+    else -> value.toString()
 }
 
-fun wrap(o: Any?): Any? {
-    if (o == null) {
-        // Log.e("ReceiveIntentPlugin", "$o is null")
-        return JSONObject.NULL
-    }
-    if (o is JSONArray || o is JSONObject) {
-        // Log.e("ReceiveIntentPlugin", "$o is JSONArray or JSONObject")
-        return o
-    }
-    if (o == JSONObject.NULL) {
-        // Log.e("ReceiveIntentPlugin", "$o is JSONObject.NULL")
-        return o
-    }
-    try {
-        if (o is Collection<*>) {
-            // Log.e("ReceiveIntentPlugin", "$o is Collection<*>")
-            if (o is ArrayList<*>) {
-                // Log.e("ReceiveIntentPlugin", "..And also ArrayList")
-                return toJSONArray(o)
+/* ------------------------------------------------------------
+ * Signature Extraction (24–36 safe)
+ * ------------------------------------------------------------ */
+
+fun getApplicationSignature(
+    context: Context,
+    packageName: String
+): List<String> {
+    return try {
+
+        val packageManager = context.packageManager
+
+        val packageInfo = when {
+            Build.VERSION.SDK_INT >= 33 -> {
+                packageManager.getPackageInfo(
+                    packageName,
+                    PackageManager.PackageInfoFlags.of(
+                        PackageManager.GET_SIGNING_CERTIFICATES.toLong()
+                    )
+                )
             }
-            return JSONArray(o as Collection<*>?)
-        } else if (o.javaClass.isArray) {
-            // Log.e("ReceiveIntentPlugin", "$o is isArray")
-            return toJSONArray(o)
-        }
-        if (o is Map<*, *>) {
-            // Log.e("ReceiveIntentPlugin", "$o is Map<*, *>")
-            return JSONObject(o)
-        }
-        if (o is Boolean ||
-            o is Byte ||
-            o is Char ||
-            o is Double ||
-            o is Float ||
-            o is Int ||
-            o is Long ||
-            o is Short ||
-            o is String
-        ) {
-            return o
-        }
-        if (o.javaClass.getPackage() != null) {
-            if (o is Uri || o.javaClass.getPackage()!!.name.startsWith("java.")) {
-                return o.toString()
+
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.P -> {
+                packageManager.getPackageInfo(
+                    packageName,
+                    PackageManager.GET_SIGNING_CERTIFICATES
+                )
             }
-        }
-    } catch (e: Exception) {
-        // Log.e("ReceiveIntentPlugin", e.message, e)
-    }
-    return null
-}
 
-@Throws(JSONException::class)
-fun toJSONArray(array: Any): JSONArray? {
-    val result = JSONArray()
-    if (!array.javaClass.isArray && array !is ArrayList<*>) {
-        // Log.e("ReceiveIntentPlugin not a primitive array", "")
-        throw JSONException("Not a primitive array: " + array.javaClass)
-    }
-
-    when (array) {
-        is List<*> -> {
-            // Log.e("ReceiveIntentPlugin toJSONArray List", "")
-            // Log.e("ReceiveIntentPlugin toJSONArray List size", "${array.size}")
-            array.forEach { result.put(wrap(it)) }
-        }
-
-        is Array<*> -> {
-            // Log.e("ReceiveIntentPlugin toJSONArray Array", "")
-            // Log.e("ReceiveIntentPlugin toJSONArray Array size", "${array.size}")
-            array.forEach { result.put(wrap(it)) }
-        }
-
-        is ArrayList<*> -> {
-            // Log.e("ReceiveIntentPlugin toJSONArray ArrayList", "")
-            array.forEach { result.put(wrap(it)) }
-        }
-
-        is ByteArray -> {
-            // Log.e("ReceiveIntentPlugin toJSONArray ByteArray", "")
-            array.forEach { result.put(wrap(it)) }
-        }
-
-        else -> {
-            // val typename = array.javaClass.kotlin.simpleName
-            // Log.e("ReceiveIntentPlugin toJSONArray else", "$typename")
-            val length = java.lang.reflect.Array.getLength(array)
-            for (i in 0 until length) {
-                result.put(wrap(java.lang.reflect.Array.get(array, i)))
+            else -> {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(
+                    packageName,
+                    PackageManager.GET_SIGNATURES
+                )
             }
         }
-    }
 
-    // Log.e("ReceiveIntentPlugin toJSONArray result", "$result")
+        val digest = MessageDigest.getInstance("SHA-256")
 
-    return result
-}
-
-fun getApplicationSignature(context: Context, packageName: String): List<String> {
-    val signatureList: List<String>
-    try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            // New signature
-            val sig = context.packageManager.getPackageInfo(
-                packageName,
-                PackageManager.GET_SIGNING_CERTIFICATES
-            ).signingInfo
-            if(sig !=null){
-            signatureList = if (sig.hasMultipleSigners()) {
-                // Send all with apkContentsSigners
-                sig.apkContentsSigners.map {
-                    val digest = MessageDigest.getInstance("SHA-256")
-                    digest.update(it.toByteArray())
-                    bytesToHex(digest.digest())
-                }
+
+            val signingInfo = packageInfo.signingInfo
+                ?: throw IllegalStateException("No signature found")
+
+            val signatures = if (signingInfo.hasMultipleSigners()) {
+                signingInfo.apkContentsSigners
             } else {
-                // Send one with signingCertificateHistory
-                sig.signingCertificateHistory.map {
-                    val digest = MessageDigest.getInstance("SHA-256")
-                    digest.update(it.toByteArray())
-                    bytesToHex(digest.digest())
-                }
+                signingInfo.signingCertificateHistory
             }
-            }else{
-                signatureList = emptyList()
+
+            signatures.map {
+                digest.reset()
+                digest.update(it.toByteArray())
+                digest.digest().toHex()
             }
+
         } else {
-            val sig = context.packageManager.getPackageInfo(
-                packageName,
-                PackageManager.GET_SIGNATURES
-            ).signatures
-            signatureList = if (sig != null) {
-                sig.map {
-                    val digest = MessageDigest.getInstance("SHA-256")
-                    digest.update(it.toByteArray())
-                    bytesToHex(digest.digest())
-                }
-            } else{
-                emptyList()
+
+            @Suppress("DEPRECATION")
+            val signatures = packageInfo.signatures
+                ?: throw IllegalStateException("No signature found")
+
+            signatures.map {
+                digest.reset()
+                digest.update(it.toByteArray())
+                digest.digest().toHex()
             }
         }
-        return signatureList
-    } catch (e: Exception) {
-        // Handle error
+
+    } catch (_: Exception) {
+        emptyList()
     }
-    return emptyList()
 }
 
-fun bytesToHex(bytes: ByteArray): String {
-    val hexArray =
-        charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
-    val hexChars = CharArray(bytes.size * 2)
-    var v: Int
-    for (j in bytes.indices) {
-        v = bytes[j].toInt() and 0xFF
-        hexChars[j * 2] = hexArray[v.ushr(4)]
-        hexChars[j * 2 + 1] = hexArray[v and 0x0F]
-    }
-    return String(hexChars)
-}
+private fun ByteArray.toHex(): String =
+    joinToString("") { "%02X".format(it) }
 
+/* ------------------------------------------------------------
+ * File Name Resolver (StrictMode-safe)
+ * ------------------------------------------------------------ */
 
 fun getFileName(uri: Uri?, context: Context): String? {
-    var result: String? = null
-    if (uri == null) {
-        return null
-    }
-    if (uri.scheme.equals("content")) {
-        val cursor = context.contentResolver.query(uri, null, null, null, null)
-        try {
-            if (cursor != null && cursor.moveToFirst()) {
-                result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+    if (uri == null) return null
+
+    if (uri.scheme == "content") {
+        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (index != -1 && cursor.moveToFirst()) {
+                return cursor.getString(index)
             }
-        } finally {
-            cursor?.close()
         }
     }
-    if (result == null) {
-        result = uri.path
-        val cut = result?.lastIndexOf('/')
-        if (cut != null && cut != -1) {
-            result = result.substring(cut + 1)
-        }
-    }
-    return result
+
+    return uri.lastPathSegment
 }

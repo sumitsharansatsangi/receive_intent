@@ -10,7 +10,7 @@ void main() {
 /// Example app widget for the plugin.
 class MyApp extends StatefulWidget {
   /// Constructor of MyApp widget.
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
