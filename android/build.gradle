@@ -2,7 +2,7 @@ group 'com.bhikadia.receive_intent'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '2.3.10'
+    ext.kotlin_version = '2.3.21'
     repositories {
         google()
         mavenCentral()
@@ -29,7 +29,7 @@ android {
         namespace 'com.bhikadia.receive_intent'
     }
 
-    compileSdk 36
+    compileSdk 37
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
