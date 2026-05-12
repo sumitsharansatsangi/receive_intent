@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.LibraryExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -13,13 +14,12 @@ repositories {
     mavenCentral()
 }
 
-android {
+extensions.configure<LibraryExtension>("android") {
     namespace = "com.bhikadia.receive_intent"
     compileSdk = 37
 
     defaultConfig {
         minSdk = 24
-        targetSdk = 37
     }
 
     compileOptions {
@@ -29,7 +29,7 @@ android {
 
     sourceSets {
         getByName("main") {
-            java.srcDirs("src/main/kotlin")
+            java.directories.add("src/main/kotlin")
         }
     }
 }
