@@ -1,20 +1,25 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-group = "com.bhikadia.receive_intent"
-version "1.0-SNAPSHOT"
-
 plugins {
     id("com.android.library")
 }
 
+group = "com.bhikadia.receive_intent"
+version = "1.0-SNAPSHOT"
+
 repositories {
-        google()
-        mavenCentral()
-    }
+    google()
+    mavenCentral()
+}
 
 android {
-    namespace 'com.bhikadia.receive_intent'
+    namespace = "com.bhikadia.receive_intent"
     compileSdk = 37
+
+    defaultConfig {
+        minSdk = 24
+        targetSdk = 37
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
@@ -32,12 +37,8 @@ android {
             java.srcDirs("src/main/kotlin")
         }
     }
-    defaultConfig {
-        minSdk = 24
-        targetSdk = 37
-    }
 }
 
 dependencies {
-    implementation("androidx.annotation:annotation:1.10.0")
+    implementation("androidx.annotation:annotation:1.10.1")
 }
