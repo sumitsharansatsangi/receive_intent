@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.library")
+    id("org.jetbrains.kotlin.android")
 }
 
 group = "com.bhikadia.receive_intent"
@@ -26,18 +27,18 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
-        }
-    }
-
     sourceSets {
         getByName("main") {
             java.srcDirs("src/main/kotlin")
         }
     }
 }
+
+kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
+    }
 
 dependencies {
     implementation("androidx.annotation:annotation:1.10.1")
